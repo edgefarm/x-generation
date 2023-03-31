@@ -9,7 +9,7 @@
     'spec.forProvider.tagging',
     'spec.providerConfigRef.default',
     'spec.providerRef',
-    'spec.publishConnectionDetailsTo.configRef.default'
+    'spec.publishConnectionDetailsTo'
   ],
 
   NameToPlural(config):: (

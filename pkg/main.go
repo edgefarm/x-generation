@@ -102,21 +102,23 @@ type ProviderConfig struct {
 }
 
 type Generator struct {
-	Group                string           `yaml:"group" json:"group"`
-	Name                 string           `yaml:"name" json:"name"`
-	Plural               *string          `yaml:"plural,omitempty" json:"plural,omitempty"`
-	Version              string           `yaml:"version" json:"version"`
-	ScriptFileName       *string          `yaml:"scriptFile,omitempty"`
-	ConnectionSecretKeys *[]string        `yaml:"connectionSecretKeys,omitempty" json:"connectionSecretKeys,omitempty"`
-	Ignore               bool             `yaml:"ignore"`
-	PatchExternalName    *bool            `yaml:"patchExternalName,omitempty" json:"patchExternalName,omitempty"`
-	UIDFieldPath         *string          `yaml:"uidFieldPath,omitempty" json:"uidFieldPath,omitempty"`
-	OverrideFields       []OverrideField  `yaml:"overrideFields" json:"overrideFields"`
-	Compositions         []Composition    `yaml:"compositions" json:"compositions"`
-	Tags                 LocalTagConfig   `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Labels               LocalLabelConfig `yaml:"labels,omitempty" json:"labels,omitempty"`
-	Provider             ProviderConfig   `yaml:"provider" json:"provider"`
-	ReadinessChecks      *bool            `yaml:"readinessChecks, omitempty" json:"readinessChecks,omitempty"`
+	Group                       string           `yaml:"group" json:"group"`
+	Name                        string           `yaml:"name" json:"name"`
+	Plural                      *string          `yaml:"plural,omitempty" json:"plural,omitempty"`
+	Version                     string           `yaml:"version" json:"version"`
+	ScriptFileName              *string          `yaml:"scriptFile,omitempty"`
+	ConnectionSecretKeys        *[]string        `yaml:"connectionSecretKeys,omitempty" json:"connectionSecretKeys,omitempty"`
+	DefaultConnectionSecretName *string          `yaml:"defaultConnectionSecretName,omitempty" json:"defaultConnectionSecretName,omitempty"`
+	ProviderConfigRefOverride   *string          `yaml:"providerConfigRefOverride,omitempty" json:"providerConfigRefOverride,omitempty"`
+	Ignore                      bool             `yaml:"ignore"`
+	PatchExternalName           *bool            `yaml:"patchExternalName,omitempty" json:"patchExternalName,omitempty"`
+	UIDFieldPath                *string          `yaml:"uidFieldPath,omitempty" json:"uidFieldPath,omitempty"`
+	OverrideFields              []OverrideField  `yaml:"overrideFields" json:"overrideFields"`
+	Compositions                []Composition    `yaml:"compositions" json:"compositions"`
+	Tags                        LocalTagConfig   `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Labels                      LocalLabelConfig `yaml:"labels,omitempty" json:"labels,omitempty"`
+	Provider                    ProviderConfig   `yaml:"provider" json:"provider"`
+	ReadinessChecks             *bool            `yaml:"readinessChecks, omitempty" json:"readinessChecks,omitempty"`
 
 	crdSource   string
 	configPath  string

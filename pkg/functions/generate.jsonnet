@@ -40,7 +40,7 @@ local definitionStatus = k8s.GenerateSchema(
     apiVersion: 'apiextensions.crossplane.io/v1',
     kind: 'CompositeResourceDefinition',
     metadata: {
-      name: "composite"+fqdn,
+      name: "x"+fqdn,
     },
     spec: {
       claimNames: {
@@ -51,8 +51,8 @@ local definitionStatus = k8s.GenerateSchema(
         s.config.connectionSecretKeys,
       group: s.config.group,
       names: {
-        kind: "Composite"+s.config.name,
-        plural: "composite"+plural,
+        kind: "X"+s.config.name,
+        plural: "x"+plural,
         categories: k8s.GenerateCategories(s.config.group),
       },
       versions: [
@@ -95,7 +95,7 @@ local definitionStatus = k8s.GenerateSchema(
     apiVersion: 'apiextensions.crossplane.io/v1',
     kind: 'Composition',
     metadata: {
-      name: "composite" + composition.name + "." + s.config.group,
+      name: "x" + composition.name + "." + s.config.group,
       labels: k8s.GenerateLabels(s.compositionIdentifier,composition.provider),
     },
     spec: {
@@ -104,7 +104,7 @@ local definitionStatus = k8s.GenerateSchema(
         'crossplane-system',
       compositeTypeRef: {
         apiVersion: s.config.group + '/' + s.config.version,
-        kind: "Composite"+s.config.name,
+        kind: "X"+s.config.name,
       },
       patchSets: [
         {
@@ -144,7 +144,7 @@ local definitionStatus = k8s.GenerateSchema(
             metadata: k8s.GenCommonLabels(s.commonLabels),
             spec: {
               providerConfigRef: {
-                name: 'default',
+                name: if std.objectHas(s.config, "providerConfigRefOverride") then s.config.providerConfigRefOverride else 'default',
               },
               [if std.objectHas(s.config, "connectionSecretKeys") then "writeConnectionSecretToRef"]:
                 {
@@ -179,15 +179,25 @@ local definitionStatus = k8s.GenerateSchema(
               'fromFieldPath',
               'toFieldPath',
               'Optional'
-          )+
-          (if std.objectHas(s.config, "connectionSecretKeys") then           
-            k8s.GenSecretPatch(
+          )
+          + (if std.objectHas(s.config, "connectionSecretKeys") then           
+            (if std.objectHas(s.config, "defaultConnectionSecretName") && s.config.defaultConnectionSecretName == "false" then
+              k8s.GenPatch(
+                'FromCompositeFieldPath',
+                'metadata.name',
+                'spec.writeConnectionSecretToRef.name',
+                'fromFieldPath',
+                'toFieldPath',
+                'Optional'
+              ) else
+              k8s.GenSecretPatch(
                 'FromCompositeFieldPath',
                 'metadata.uid',
                 'spec.writeConnectionSecretToRef.name',
                 'fromFieldPath',
                 'toFieldPath',
                 'Optional'
+              )
             )else []),
           [if s.readinessChecks == "false" then "readinessChecks"]: [{type:"None"}],
           [if std.objectHas(s.config, "connectionSecretKeys") then "connectionDetails"]:
