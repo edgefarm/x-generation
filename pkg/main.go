@@ -112,6 +112,7 @@ type Generator struct {
 	ProviderConfigRefOverride   *string          `yaml:"providerConfigRefOverride,omitempty" json:"providerConfigRefOverride,omitempty"`
 	Ignore                      bool             `yaml:"ignore"`
 	PatchExternalName           *bool            `yaml:"patchExternalName,omitempty" json:"patchExternalName,omitempty"`
+	KeepExternalname            *bool            `yaml:"keepExternalName,omitempty" json:"keepExternalName,omitempty"`
 	UIDFieldPath                *string          `yaml:"uidFieldPath,omitempty" json:"uidFieldPath,omitempty"`
 	OverrideFields              []OverrideField  `yaml:"overrideFields" json:"overrideFields"`
 	Compositions                []Composition    `yaml:"compositions" json:"compositions"`

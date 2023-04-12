@@ -40,19 +40,19 @@ local definitionStatus = k8s.GenerateSchema(
     apiVersion: 'apiextensions.crossplane.io/v1',
     kind: 'CompositeResourceDefinition',
     metadata: {
-      name: "x"+fqdn,
+      name: 'x' + fqdn,
     },
     spec: {
       claimNames: {
         kind: s.config.name,
         plural: plural,
       },
-      [if std.objectHas(s.config, "connectionSecretKeys") then "connectionSecretKeys"]:
+      [if std.objectHas(s.config, 'connectionSecretKeys') then 'connectionSecretKeys']:
         s.config.connectionSecretKeys,
       group: s.config.group,
       names: {
-        kind: "X"+s.config.name,
-        plural: "x"+plural,
+        kind: 'X' + s.config.name,
+        plural: 'x' + plural,
         categories: k8s.GenerateCategories(s.config.group),
       },
       versions: [
@@ -75,7 +75,7 @@ local definitionStatus = k8s.GenerateSchema(
                       observed: {
                         description: 'Freeform field containing information about the observed status.',
                         type: 'object',
-                        "x-kubernetes-preserve-unknown-fields": true,
+                        'x-kubernetes-preserve-unknown-fields': true,
                       },
                     },
                   },
@@ -95,29 +95,29 @@ local definitionStatus = k8s.GenerateSchema(
     apiVersion: 'apiextensions.crossplane.io/v1',
     kind: 'Composition',
     metadata: {
-      name: "x" + composition.name + "." + s.config.group,
-      labels: k8s.GenerateLabels(s.compositionIdentifier,composition.provider),
+      name: 'x' + composition.name + '.' + s.config.group,
+      labels: k8s.GenerateLabels(s.compositionIdentifier, composition.provider),
     },
     spec: {
       local spec = self,
-      [if std.objectHas(s.config, "connectionSecretKeys") then "writeConnectionSecretsToNamespace"]:
+      [if std.objectHas(s.config, 'connectionSecretKeys') then 'writeConnectionSecretsToNamespace']:
         'crossplane-system',
       compositeTypeRef: {
         apiVersion: s.config.group + '/' + s.config.version,
-        kind: "X"+s.config.name,
+        kind: 'X' + s.config.name,
       },
       patchSets: [
         {
           name: 'Name',
           patches: [{
             type: 'FromCompositeFieldPath',
-            fromFieldPath: 'metadata.labels[crossplane.io/claim-name]',
-            toFieldPath: if std.objectHas(s.config, 'patchExternalName') && s.config.patchExternalName == false then 'metadata.name' else 'metadata.annotations[crossplane.io/external-name]',
+            fromFieldPath: if !std.objectHas(s.config, 'keepExternalName') || (std.objectHas(s.config, 'keepExternalName') && s.config.keepExternalName == false) then 'metadata.labels[crossplane.io/claim-name]' else 'metadata.annotations[crossplane.io/external-name]',
+            toFieldPath: if !std.objectHas(s.config, 'patchExternalName') || (std.objectHas(s.config, 'patchExternalName') && s.config.patchExternalName == false) then 'metadata.name' else 'metadata.annotations[crossplane.io/external-name]',
           }],
         },
         {
           name: 'Common',
-          patches: k8s.GenLabelsPatch(s.globalLabels)
+          patches: k8s.GenLabelsPatch(s.globalLabels),
         },
         {
           name: 'Parameters',
@@ -131,8 +131,8 @@ local definitionStatus = k8s.GenerateSchema(
         },
         {
           name: 'Labels',
-          patches: k8s.GenLabelsPatch(s.labelList)
-        }
+          patches: k8s.GenLabelsPatch(s.labelList),
+        },
       ] + k8s.GenTagsPatch(s.tagType, s.tagList, s.tagProperty),
       resources: [
         {
@@ -144,67 +144,68 @@ local definitionStatus = k8s.GenerateSchema(
             metadata: k8s.GenCommonLabels(s.commonLabels),
             spec: {
               providerConfigRef: {
-                name: if std.objectHas(s.config, "providerConfigRefOverride") then s.config.providerConfigRefOverride else 'default',
+                name: if std.objectHas(s.config, 'providerConfigRefOverride') then s.config.providerConfigRefOverride else 'default',
               },
-              [if std.objectHas(s.config, "connectionSecretKeys") then "writeConnectionSecretToRef"]:
+              [if std.objectHas(s.config, 'connectionSecretKeys') then 'writeConnectionSecretToRef']:
                 {
-                  namespace: 'crossplane-system'
+                  namespace: 'crossplane-system',
                 },
-              forProvider: k8s.GenTagKeys(s.tagType, s.tagProperty, s.tagList, s.commonTags)
+              forProvider: k8s.GenTagKeys(s.tagType, s.tagProperty, s.tagList, s.commonTags),
             },
           } + k8s.SetDefaults(s.config),
           patches: [
-            {
-              type: 'PatchSet',
-              patchSetName: ps.name,
-            }
-            for ps in spec.patchSets
-          ] + k8s.GenOptionalPatchTo(
-            k8s.GeneratePatchPaths(
-              definitionStatus.properties,
-              s.config,
-              ['status']
-            )
-          )+ k8s.GenPatch(
-              'ToCompositeFieldPath',
-              uidFieldPath,
-              'status.%s' % [uidFieldName],
-              'fromFieldPath',
-              'toFieldPath',
-              'Optional'
-          )+ k8s.GenPatch(
-              'ToCompositeFieldPath',
-              'status.conditions',
-              'status.observed.conditions',
-              'fromFieldPath',
-              'toFieldPath',
-              'Optional'
-          )
-          + (if std.objectHas(s.config, "connectionSecretKeys") then           
-            (if std.objectHas(s.config, "defaultConnectionSecretName") && s.config.defaultConnectionSecretName == "false" then
-              k8s.GenPatch(
-                'FromCompositeFieldPath',
-                'metadata.name',
-                'spec.writeConnectionSecretToRef.name',
-                'fromFieldPath',
-                'toFieldPath',
-                'Optional'
-              ) else
-              k8s.GenSecretPatch(
-                'FromCompositeFieldPath',
-                'metadata.uid',
-                'spec.writeConnectionSecretToRef.name',
-                'fromFieldPath',
-                'toFieldPath',
-                'Optional'
-              )
-            )else []),
-          [if s.readinessChecks == "false" then "readinessChecks"]: [{type:"None"}],
-          [if std.objectHas(s.config, "connectionSecretKeys") then "connectionDetails"]:
+                     {
+                       type: 'PatchSet',
+                       patchSetName: ps.name,
+                     }
+                     for ps in spec.patchSets
+                   ] + k8s.GenOptionalPatchTo(
+                     k8s.GeneratePatchPaths(
+                       definitionStatus.properties,
+                       s.config,
+                       ['status']
+                     )
+                   ) + k8s.GenPatch(
+                     'ToCompositeFieldPath',
+                     uidFieldPath,
+                     'status.%s' % [uidFieldName],
+                     'fromFieldPath',
+                     'toFieldPath',
+                     'Optional'
+                   ) + k8s.GenPatch(
+                     'ToCompositeFieldPath',
+                     'status.conditions',
+                     'status.observed.conditions',
+                     'fromFieldPath',
+                     'toFieldPath',
+                     'Optional'
+                   )
+                   + (if std.objectHas(s.config, 'connectionSecretKeys') then
+                        (
+                          if std.objectHas(s.config, 'defaultConnectionSecretName') && s.config.defaultConnectionSecretName == 'false' then
+                            k8s.GenPatch(
+                              'FromCompositeFieldPath',
+                              'metadata.name',
+                              'spec.writeConnectionSecretToRef.name',
+                              'fromFieldPath',
+                              'toFieldPath',
+                              'Optional'
+                            ) else
+                            k8s.GenSecretPatch(
+                              'FromCompositeFieldPath',
+                              'metadata.uid',
+                              'spec.writeConnectionSecretToRef.name',
+                              'fromFieldPath',
+                              'toFieldPath',
+                              'Optional'
+                            )
+                        ) else []),
+          [if s.readinessChecks == 'false' then 'readinessChecks']: [{ type: 'None' }],
+          [if std.objectHas(s.config, 'connectionSecretKeys') then 'connectionDetails']:
             [
               {
                 fromConnectionSecretKey: keys,
-              },
+              }
               for keys in s.config.connectionSecretKeys
             ],
         },
